@@ -184,7 +184,32 @@ KDA는 LOL 분석에서 가장 널리 쓰이는 지표이지만,
 
 ![game121](./lstm/121game.png)
 
- 
+ ---
+
+# LightGBM 예측 과정  
+
+## 모델 생성  
+LSTM과 동일하며, 다른 점은 모델 학습 과정에서  
+샘플을 추출해 먼저 학습한 뒤 가장 효과적인 학습 패턴을 파악하고,  
+그 후 메인 데이터를 학습시켰다는 점이다.
+
+### 잔차도  
+![잔차.png](Light%20GBM/잔차.png)
+
+### 정확도  
+![정확도.png](Light%20GBM/정확도.png)
+
+### 1인분 달성도  
+![1인분.png](Light%20GBM/1인분.png)
+
+LightGBM은 매우 빠른 학습 속도를 자랑하며 메모리 관리도 쉽다는 장점이 있다.  
+하지만 적은 데이터를 사용할 경우 과적합이 쉽게 발생하는 단점도 있다.
+
+---
+
+# 결론  
+시계열 관련 학습 모델은 LSTM이 더 좋은 성능을 보이고,  
+학습 속도와 메모리 관리는 LightGBM이 더 빠르다는 것을 알 수 있다. 
 
 ---
 
@@ -194,3 +219,4 @@ KDA는 LOL 분석에서 가장 널리 쓰이는 지표이지만,
 - [Riot Data Science Blog - “Gold and Experience as Predictors of Match Outcome”](https://engineering.riotgames.com/)  
 - OP.GG & U.GG Performance Metrics (Champion-based Statistics)  
 - TensorFlow Time Series Analysis Guide (LSTM 적용 근거)
+- microsoft LightGBM guide
