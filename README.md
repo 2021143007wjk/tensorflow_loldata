@@ -8,8 +8,9 @@
 
 본 프로젝트는 **리그 오브 레전드(League of Legends)** 경기 전체의 데이터를 **시계열 모델**로 분석하여,
 14분을 기준으로 나누어 
-각 플레이어의 **초반 주도권 확보 능력** 및 **운영 능력**을 객관적으로 평가하는 것을 목표로 합니다.
+각 플레이어의 **초반 주도권 확보 능력** 및 **운영 능력**을 객관적으로 평가하는 것을 목표로 한다.
 
+개인의 역량이 돋보이는 라인전에서의 능력과 팀적인 움직임에 관련된 역량이 다르기 때문에 분리하여 분석하기로 하였다.
 ---
 
 ### 1.1  챔피언 특성 뭉개기 (Normalization for Champion Heterogeneity)
@@ -203,19 +204,24 @@
 
 ----
 
+# 기여도 산출 공식
+ 기여도 산출 공식 (Contribution Scoring Formula)
+ 1. 변수 정의$t$: 게임 시간 (분, minutes)$P_t$: 모델이 예측한 해당 플레이어의 $t$ 시점 성과 (Predicted Value from LSTM)$B_t$: 해당 라인의 전체 유저 $t$ 시점 중앙값 (Baseline Median Value)$R_t$: $t$ 시점의 순간 기여 효율 (Ratio)2. 순간 기여 효율 (Instantaneous Contribution Ratio)매 분($t$)마다 플레이어의 성과가 기준값 대비 몇 배인지 계산합니다.$$R_t = \frac{P_t}{B_t}$$(단, $B_t \approx 0$인 경우, $R_t = 1.0$으로 처리하여 0으로 나누는 오류 방지)3. 구간별 기여도 점수 (Aggregated Contribution Score)우리는 이 $R_t$를 14분(포탑 방패 소멸 시점)을 기준으로 나누어 평균을 구했습니다.A. 전체 기여도 (Total Score)$$Score_{total} = \frac{1}{T} \sum_{t=0}^{T} R_t$$(여기서 $T$는 게임이 진행된 총 시간)B. 초반 라인전 기여도 (Early Game Score, $t < 14$)$$Score_{early} = \frac{1}{14} \sum_{t=0}^{13} R_t$$C. 후반 운영 기여도 (Late Game Score, $t \ge 14$)$$Score_{late} = \frac{1}{T-14} \sum_{t=14}^{T} R_t$$ 식의 의미 : $Score = 1.0$: 해당 구간에서 딱 **평균(1인분)**만큼 플레이함. $Score > 1.0$ (예: 1.2): 평균적인 선수보다 20% 더 높은 효율로 골드/경험치를 수급하며 우위를 점함. $Score < 1.0$ (예: 0.8): 평균 대비 80% 수준의 퍼포먼스로, 상대에게 밀리거나 성장이 지체됨.
+
 # 모델 선정 과정
 ## lstm모델 생성
 
 우리가 선정한 데이터를 정규화를 적용해 학습시켜 사용하였다.
-각 라인별로 lstm모델을 생성하여 현 시점의 골드를 예측하게 하였다.
+각 라인별로 lstm모델을 생성하여 현 시점의 성장 기대치를 예측하게 하였다.
 10회 동안 성능 향상이 없으면 조기 종료하게 하였다.
+중앙값을 척도로 얼마나 더 잘하였는지를 나타낸다.
 
 ![loss](./lstm/combined_loss_result.png)
 
 ![pred](./lstm/ALL_ROLES_Accuracy_Summary.png)
 해당 모델로 게임 하나를 분석하게 하였다. 다음은 중앙값을 기준으로 얼마나 잘했는지를 판단한 결과이다.
 
-![game121](./lstm/121game3.png)
+![game121](./lstm/121game.png)
 LSTM 모델이 예측한 스코어를 기반으로, 팀 전체 성능 합계에서 개인이 차지하는 상대적 비중을 산출하였다.
 
  ---
@@ -224,6 +230,7 @@ LSTM 모델이 예측한 스코어를 기반으로, 팀 전체 성능 합계에�
 LSTM과 동일하며, 다른 점은 모델 학습 과정에서  
 샘플을 추출해 먼저 학습한 뒤 가장 효과적인 학습 패턴을 파악하고,  
 그 후 메인 데이터를 학습시켰다는 점이다.
+중앙값을 척도로 얼마나 더 잘하였는지를 나타낸다.
 
 ### 잔차도  
 ![잔차.png](Light%20GBM/잔차.png)
@@ -246,12 +253,16 @@ LightGBM은 매우 빠른 학습 속도를 자랑하며 메모리 관리도 쉽�
 
 
 # 그룹별 기여도 산정
+
 분류한 그룹별 평균 기여도를 산정하고자 한다. 같은 플레이스타일로 분류된 것들을 초반과 후반을 분리하여 평균 내었다.
 ![top](./kmeans/top_02_Early_vs_Late_Score.png)
 ![jug](./kmeans/jug_02_Early_vs_Late_Score.png)
 ![mid](./kmeans/mid_02_Early_vs_Late_Score.png)
 ![bot](./kmeans/bot_02_Early_vs_Late_Score.png)
 
+다른 라인들에 비해 바텀은 후반의 기여도가 좀 떨어지는 것으로 보아 서포터의 영향을 받은 것 같다.
+
+# 
 
 
 
